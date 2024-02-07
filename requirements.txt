@@ -1,0 +1,8 @@
+fastapi
+ultralytics
+uvicorn
+networkx
+python-multipart
+pandas
+numpy
+pydantic
