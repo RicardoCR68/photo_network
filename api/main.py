@@ -4,4 +4,12 @@ app = FastAPI()
 
 @app.get("/")
 async def root():
-    return {"message": "Gamer"}
+    return {
+        "roles": [
+            {"role" : "Gamer"},
+            {"role" : "Cook"},
+            {"role" : "Knight"},
+            {"role" : "Cancewr"},
+            {"role" : "Testing"},
+        ]
+    }
