@@ -9,7 +9,7 @@ async def root():
             {"role" : "Gamer"},
             {"role" : "Cook"},
             {"role" : "Knight"},
-            {"role" : "Cancewr"},
+            {"role" : "Cancer"},
             {"role" : "Testing"},
         ]
     }
