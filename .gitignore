@@ -161,3 +161,11 @@ cython_debug/
 ## FRONTEND
 
 node_modules/
+
+## YOLO
+
+*.pt
+images/
+imgs/
+images.zip
+results/

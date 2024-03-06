@@ -1,33 +1,44 @@
-const { app, BrowserWindow, ipcMain } = require('electron/main')
-const path = require('node:path')
+const { app, BrowserWindow, dialog, ipcMain } = require('electron');
+const path = require('path');
 
-const createWindow = () => {
-  const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+function createWindow() {
+  const mainWindow = new BrowserWindow({
+    width: 1600,
+    height: 900,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: true,
+      contextIsolation: false
     }
-  })
+  });
 
-  win.loadFile('index.html')
+  mainWindow.loadFile('index.html');
+
   // Open DevTools
-  win.webContents.openDevTools()
+  mainWindow.webContents.openDevTools();
 }
 
 app.whenReady().then(() => {
-  ipcMain.handle('ping', () => 'pong')
-  createWindow()
+  createWindow();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow()
+      createWindow();
     }
-  })
-})
+  });
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
-    app.quit()
+    app.quit();
   }
-})
+});
+
+ipcMain.on('open-folder-dialog', async (event) => {
+  const result = await dialog.showOpenDialog({ properties: ['openDirectory'] });
+
+  if (!result.canceled && result.filePaths.length > 0) {
+    const folderPath = result.filePaths[0];
+    event.reply('selected-folder', folderPath);
+  }
+});
