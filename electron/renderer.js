@@ -22,9 +22,13 @@ window.addEventListener('DOMContentLoaded', () => {
           nodes: response.data.nodes,
           edges: response.data.edges,
         };
-        const options = {}; // Add any visualization options here
+        const options = {
+          nodes: {
+            shape: "dot",
+            size: 10,
+          },
+        }; // Add any visualization options here
         const network = new vis.Network(container, data, options);
-        document.getElementById('visualizationJSON').textContent = response.data;
       })
       .catch(error => {
         console.error('Error sending folder path to API:', error);

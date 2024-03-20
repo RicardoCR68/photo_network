@@ -142,52 +142,58 @@ async def root():
     }
 
 def generate_image_graph(image_file):
-    model = YOLO('yolov8n.pt')
+    model = YOLO('yolov8m.pt')
 
     results = model(image_file)
     nodes = [
         {
             'id' : image_file,
             'label' : image_file.split('/')[-1],
-            'value' : 1
+            'value' : 15,
+            'shape' : 'image',
+            'image' : image_file,
+            'group': 1
         }
     ]
 
     edges = []
-
+    confidence_threshold = 0.6
     for result in results:
         parent_path = os.path.join(os.getcwd(), os.pardir)
         result.save(filename=f'{parent_path}/results/{nodes[0]['label']}_result.png')
         res_arr = json.loads(result.tojson())
         for res in res_arr:
-            if any(stored_node['id'] == res['name'] for stored_node in nodes):
-                for node in nodes:
-                    if node['id'] == res['name']:
-                        node['value'] += 1
-            else:
+            if res['confidence'] < confidence_threshold:
+                continue
+
+            found_node = False
+            for stored_node in nodes:
+                if stored_node['id'] == res['class']:
+                    stored_node['value'] += 1
+                    found_node = True
+                    break
+
+            if not found_node:
                 nodes.append({
-                    'id' : res['name'],
+                    'id' : res['class'],
                     'label' : res['name'],
-                    'value' : 1
+                    'value' : 1,
+                    'group' : 2
                 })
 
-            if edges:
-                for edge in edges:
-                    if edge['from'] == res['name']:
-                        edge['label'] += 1
-                        edge['value'] = max([edge['value'], res['confidence']])
-                    else:
-                        edges.append({
-                            'to' : image_file,
-                            'from' : res['name'],
-                            'label' : 1,
-                            'value' : res['confidence']
-                        })
-            else:
+            found_edge = False
+            for edge in edges:
+                if edge['to'] == image_file and edge['from'] == res['class']:
+                    edge['label'] = str(int(edge['label']) + 1)
+                    edge['value'] = max([edge['value'], res['confidence']])
+                    found_edge = True
+                    break
+
+            if not found_edge:
                 edges.append({
                     'to' : image_file,
-                    'from' : res['name'],
-                    'label' : 1,
+                    'from' : res['class'],
+                    'label' : '1',
                     'value' : res['confidence']
                 })
     return [nodes, edges]
