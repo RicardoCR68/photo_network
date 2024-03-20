@@ -8,10 +8,10 @@ Repo for the latest implementation of our TCC
 - [ ] Process picture and output it's identified tags
 - [ ] Visualize picture's tags
   - [ ] Preferably with confidence ratios
-- [ ] Visualize multiple tags and their images
-- [ ] Relate images through common tags
-  - [ ] Nº of identical tags could represent edge weight
-- [ ] Make every execution local
+- [x] Visualize multiple tags and their images
+- [x] Relate images through common tags
+  - [x] Nº of identical tags could represent edge weight
+- [x] Make every execution local
 - [ ] "Good enough" user interface
   - [ ] No obvious missing features
   - [ ] Consistent Design Patterns
@@ -21,12 +21,12 @@ Repo for the latest implementation of our TCC
 ## Nice-to-Have Features
 
 - [ ] No reload between requests
-- [ ] YoloV8
-- [ ] Self-Contained Executable
+- [x] YoloV8
+- [x] Self-Contained Executable
 
 ## Optional Features
 
-- [ ] Electron (web)App
+- [x] Electron (web)App
 
 # Article Tasks
 
@@ -38,5 +38,5 @@ Repo for the latest implementation of our TCC
   - [ ] Colaboratory
 - [ ] Prints of results
   - [ ] Partial
-  - [ ] Full
+  - [x] Full
   - [ ] According to current development
