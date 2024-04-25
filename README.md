@@ -22,7 +22,7 @@ Repo for the latest implementation of our TCC
 
 - [ ] No reload between requests
 - [x] YoloV8
-- [x] Self-Contained Executable
+- [~] Self-Contained Executable
 
 ## Optional Features
 

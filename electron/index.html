@@ -8,13 +8,27 @@
     #visualization {
       width: 80vw;
       height: 80vh;
+      background-color: #dddddd;
     }
   </style>
 </head>
 <body>
   <button id="selectFolderBtn">Select Folder</button>
   <div id="visualization"></div>
-  <div id="visualizationJSON"></div>
+  <div id="single-node-visualization" hidden>
+    <form id="single-node-form">
+      <label for="node-id">Class Name:</label>
+      <select id="classSelect" name="classSelect"></select>
+      <input type="submit" value="Choose">
+    </form>
+  </div>
+  <div id="single-image-visualization" hidden>
+    <form id="single-image-form">
+      <label for="node-id">Image Name:</label>
+      <select id="imageSelect" name="imageSelect"></select>
+      <input type="submit" value="Choose">
+    </form>
+  </div>
   <script src="renderer.js"></script>
 </body>
 </html>

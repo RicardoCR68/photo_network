@@ -9,140 +9,64 @@ app = FastAPI()
 class FolderPath(BaseModel):
     folderPath: str
 
+class ClassSelect(BaseModel):
+    classId: str
+
+class ImageSelect(BaseModel):
+    imageId: str
+
 @app.post("/")
 async def receive_folder_path(folder_path: FolderPath):
     received_path = folder_path.folderPath
+    global folder_results
     folder_results = generate_graphs(received_path)
-    folder_json = json.dumps(folder_results)
+
     return folder_results
 
 @app.get("/")
 async def root():
-    return {
-        "nodes": [
-            {
-                'id': 1,
-                'value': 2,
-                'label': "Algie"
-            },
-            {
-                'id': 2,
-                'value': 31,
-                'label': "Alston"
-            },
-            {
-                'id': 3,
-                'value': 12,
-                'label': "Barney"
-            },
-            {
-                'id': 4,
-                'value': 16,
-                'label': "Coley"
-            },
-            {
-                'id': 5,
-                'value': 17,
-                'label': "Grant"
-            },
-            {
-                'id': 6,
-                'value': 15,
-                'label': "Langdon"
-            },
-            {
-                'id': 7,
-                'value': 6,
-                'label': "Lee"
-            },
-            {
-                'id': 8,
-                'value': 5,
-                'label': "Merlin"
-            },
-            {
-                'id': 9,
-                'value': 30,
-                'label': "Mick"
-            },
-            {
-                'id': 10,
-                'value': 18,
-                'label': "Tod"
-            },
-        ],
-        'edges': [
-            {
-                'from': 2,
-                'to': 8,
-                'value': 3,
-                'label': "3 emails per week"
-            },
-            {
-                'from': 2,
-                'to': 9,
-                'value': 5,
-                'label': "5 emails per week"
-            },
-            {
-                'from': 2,
-                'to': 10,
-                'value': 1,
-                'label': "1 emails per week"
-            },
-            {
-                'from': 4,
-                'to': 6,
-                'value': 8,
-                'label': "8 emails per week"
-            },
-            {
-                'from': 5,
-                'to': 7,
-                'value': 2,
-                'label': "2 emails per week"
-            },
-            {
-                'from': 4,
-                'to': 5,
-                'value': 1,
-                'label': "1 emails per week"
-            },
-            {
-                'from': 9,
-                'to': 10,
-                'value': 2,
-                'label': "2 emails per week"
-            },
-            {
-                'from': 2,
-                'to': 3,
-                'value': 6,
-                'label': "6 emails per week"
-            },
-            {
-                'from': 3,
-                'to': 9,
-                'value': 4,
-                'label': "4 emails per week"
-            },
-            {
-                'from': 5,
-                'to': 3,
-                'value': 1,
-                'label': "1 emails per week"
-            },
-            {
-                'from': 2,
-                'to': 7,
-                'value': 4,
-                'label': "4 emails per week"
-            },
-        ]
+    return {}
+
+@app.post("/nodes/")
+async def get_node(class_name: ClassSelect):
+    id = int(class_name.classId)
+    node_ids = []
+    response = {
+        'nodes' : []
     }
 
+    for edge in folder_results['edges']:
+        if edge['from'] == id:
+            node_ids.append(edge['to'])
+
+    for node_id in node_ids:
+        for node in folder_results['nodes']:
+            if node['id'] == node_id:
+                response['nodes'].append(node)
+
+    return response
+
+@app.post("/images/")
+async def get_node(image_path: ImageSelect):
+    id = image_path.imageId
+    node_ids = []
+    response = {
+        'nodes' : []
+    }
+
+    for edge in folder_results['edges']:
+        if edge['to'] == id:
+            node_ids.append(edge['from'])
+
+    for node_id in node_ids:
+        for node in folder_results['nodes']:
+            if node['id'] == node_id:
+                response['nodes'].append(node)
+
+    return response
+
 def generate_image_graph(image_file):
-    model = YOLO('yolov8m.pt')
+    model = YOLO('yolov8n.pt')
 
     results = model(image_file)
     nodes = [
@@ -157,7 +81,7 @@ def generate_image_graph(image_file):
     ]
 
     edges = []
-    confidence_threshold = 0.6
+    confidence_threshold = 0.5
     for result in results:
         parent_path = os.path.join(os.getcwd(), os.pardir)
         result.save(filename=f'{parent_path}/results/{nodes[0]['label']}_result.png')
