@@ -1,33 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Folder Picker</title>
+  <title>Photo Network</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
-  <style>
-    #visualization {
-      width: 80vw;
-      height: 80vh;
-      background-color: #dddddd;
-    }
-  </style>
+  <link rel="stylesheet" href="stylesheet.css" />
 </head>
 <body>
-  <button id="selectFolderBtn">Select Folder</button>
-  <div id="visualization"></div>
-  <div id="single-node-visualization" hidden>
-    <form id="single-node-form">
-      <label for="node-id">Class Name:</label>
-      <select id="classSelect" name="classSelect"></select>
-      <input type="submit" value="Choose">
-    </form>
-  </div>
-  <div id="single-image-visualization" hidden>
-    <form id="single-image-form">
-      <label for="node-id">Image Name:</label>
-      <select id="imageSelect" name="imageSelect"></select>
-      <input type="submit" value="Choose">
-    </form>
+  <div id="container">
+    <div id="network">
+      <div class="controls">
+        <select name="yolo_model_weight" id="yoloWeightSelector">
+          <option value=""></option>
+          <option value="x-large">X-Large</option>
+          <option value="large">Large</option>
+          <option value="medium" selected>Medium</option>
+          <option value="small">Small</option>
+          <option value="nano">Nano</option>
+        </select>
+        <button id="selectFolderBtn">Select Folder</button>
+        <button id="resetGraphBtn" disabled>Reset Graph</button>
+      </div>
+      <div id="visualization"></div>
+    </div>
+    <div id="single-node-visualization">
+      <form id="single-node-form">
+        <fieldset>
+          <legend>Choose a Class:</legend>
+          <div id="classOptions"></div>
+          <input type="submit" value="Choose">
+        </fieldset>
+      </form>
+    </div>
+    <div id="single-image-visualization">
+      <form id="single-image-form">
+        <fieldset>
+          <legend>Choose an Image:</legend>
+          <div id="imageOptions"></div>
+          <input type="submit" value="Choose">
+        </fieldset>
+      </form>
+    </div>
   </div>
   <script src="renderer.js"></script>
 </body>

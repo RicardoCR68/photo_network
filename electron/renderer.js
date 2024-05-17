@@ -9,16 +9,21 @@ window.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('visualization');
 
   const selectFolderBtn = document.getElementById('selectFolderBtn');
+  const yoloWeightSelect = document.getElementById('yoloWeightSelector');
+  const resetGraphBtn = document.getElementById('resetGraphBtn');
 
   selectFolderBtn.addEventListener('click', () => {
     ipcRenderer.send('open-folder-dialog');
   });
 
   ipcRenderer.on('selected-folder', (_event, folderPath) => {
-    axios.post('http://localhost:8000/', { folderPath })
+    yoloWeight = yoloWeightSelect.value;
+    console.log(yoloWeight);
+    axios.post('http://localhost:8000/', { folderPath, yoloWeight })
       .then(response => {
         console.log('Folder path sent to API:');
         console.log(response.data);
+        resetGraphBtn.disabled = false;
         populateGraphView(container, response.data);
         populateClassSelect(container, response.data);
         populateImageSelect(container, response.data);
@@ -27,6 +32,19 @@ window.addEventListener('DOMContentLoaded', () => {
         console.error('Error sending folder path to API:', error);
       });
   });
+});
+
+document.getElementById('resetGraphBtn').addEventListener('click', () => {
+  const container = document.getElementById('visualization');
+  axios.get('http://localhost:8000/reset/')
+    .then(response => {
+      console.log(response.data);
+      resetGraphBtn.disabled = false;
+      populateGraphView(container, response.data);
+    })
+    .catch(error => {
+      console.error('Error resetting graph through API:', error);
+    });
 });
 
 const populateGraphView = (container, graph_data) => {
@@ -55,23 +73,35 @@ const populateGraphView = (container, graph_data) => {
 }
 
 const populateClassSelect = (container, class_res_data) => {
-  const classSelect = document.getElementById('classSelect');
-  classSelect.innerHTML = '';
+  const classOptions = document.getElementById('classOptions');
+  classOptions.innerHTML = '';
   const class_nodes = class_res_data.nodes.filter(node => !node.image)
   console.log(class_nodes)
 
   class_nodes.forEach((node) => {
-    const option = document.createElement('option');
-    option.value = node['id'];
-    option.text = node['label'];
-    classSelect.appendChild(option);
-  })
+    const optionDiv = document.createElement('div');
+    optionDiv.id = 'class-' + node['id'];
+    optionDiv.className = 'option-div';
 
-  document.getElementById('single-node-visualization').style.display = 'block';
+    const radio = document.createElement('input');
+    radio.type = 'radio';
+    radio.name = 'className';
+    radio.value = node['id'];
+
+    const label = document.createElement('label');
+    label.textContent = node['label'];
+
+    label.htmlFor = 'class-' + node['id'];
+
+    optionDiv.appendChild(radio);
+    optionDiv.appendChild(label);
+
+    classOptions.appendChild(optionDiv);
+  });
 
   document.getElementById('single-node-form').addEventListener('submit', (event) => {
     event.preventDefault();
-    const classId = document.getElementById('classSelect').value;
+    const classId = classOptions.querySelector('input[name="className"]:checked').value;
     axios.post('http://localhost:8000/nodes/', { classId })
       .then(response => {
         console.log('Class name sent to API:');
@@ -81,26 +111,39 @@ const populateClassSelect = (container, class_res_data) => {
       .catch(error => {
         console.error('Error sending class name to API:', error);
       });
-  })
+  });
 }
 
 const populateImageSelect = (container, img_res_data) => {
-  const imageSelect = document.getElementById('imageSelect');
-  imageSelect.innerHTML = '';
+  const imageOptions = document.getElementById('imageOptions');
+  imageOptions.innerHTML = '';
   const image_nodes = img_res_data.nodes.filter(node => node.image)
+  console.log(image_nodes)
 
   image_nodes.forEach((node) => {
-    const option = document.createElement('option');
-    option.value = node['id'];
-    option.text = node['label'];
-    imageSelect.appendChild(option);
-  })
+    const optionDiv = document.createElement('div');
+    optionDiv.id = 'image-' + node['id'];
+    optionDiv.imageName = 'option-div';
 
-  document.getElementById('single-image-visualization').style.display = 'block';
+    const radio = document.createElement('input');
+    radio.type = 'radio';
+    radio.name = 'imageName';
+    radio.value = node['id'];
+
+    const label = document.createElement('label');
+    label.textContent = node['label'];
+
+    label.htmlFor = 'image-' + node['id'];
+
+    optionDiv.appendChild(radio);
+    optionDiv.appendChild(label);
+
+    imageOptions.appendChild(optionDiv);
+  });
 
   document.getElementById('single-image-form').addEventListener('submit', (event) => {
     event.preventDefault();
-    const imageId = document.getElementById('imageSelect').value;
+    const imageId = imageOptions.querySelector('input[name="imageName"]:checked').value;
     axios.post('http://localhost:8000/images/', { imageId })
       .then(response => {
         console.log('Image name sent to API:');
@@ -110,5 +153,5 @@ const populateImageSelect = (container, img_res_data) => {
       .catch(error => {
         console.error('Error sending image name to API:', error);
       });
-  })
+  });
 }

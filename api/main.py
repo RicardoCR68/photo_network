@@ -6,8 +6,9 @@ import json
 
 app = FastAPI()
 
-class FolderPath(BaseModel):
+class GraphSourceChoice(BaseModel):
     folderPath: str
+    yoloWeight: str
 
 class ClassSelect(BaseModel):
     classId: str
@@ -15,17 +16,31 @@ class ClassSelect(BaseModel):
 class ImageSelect(BaseModel):
     imageId: str
 
+YOLO_WEIGHT_OPTIONS = {
+    'x-large': 'yolov8x.pt',
+    'large': 'yolov8l.pt',
+    'medium': 'yolov8m.pt',
+    'small': 'yolov8s.pt',
+    'nano': 'yolov8n.pt',
+}
+
 @app.post("/")
-async def receive_folder_path(folder_path: FolderPath):
-    received_path = folder_path.folderPath
+async def receive_folder_path(source_choice: GraphSourceChoice):
+    received_path = source_choice.folderPath
+    yolo_weight = source_choice.yoloWeight
+
     global folder_results
-    folder_results = generate_graphs(received_path)
+    folder_results = generate_graphs(received_path, yolo_weight)
 
     return folder_results
 
 @app.get("/")
 async def root():
     return {}
+
+@app.get("/reset/")
+async def reset_graph():
+    return folder_results
 
 @app.post("/nodes/")
 async def get_node(class_name: ClassSelect):
@@ -65,8 +80,11 @@ async def get_node(image_path: ImageSelect):
 
     return response
 
-def generate_image_graph(image_file):
-    model = YOLO('yolov8n.pt')
+def generate_image_graph(image_file, yolo_weight):
+    if yolo_weight not in YOLO_WEIGHT_OPTIONS.keys():
+        yolo_weight = 'medium'
+
+    model = YOLO(YOLO_WEIGHT_OPTIONS[yolo_weight])
 
     results = model(image_file)
     nodes = [
@@ -122,7 +140,7 @@ def generate_image_graph(image_file):
                 })
     return [nodes, edges]
 
-def generate_graphs(folder_path):
+def generate_graphs(folder_path, yolo_weight):
     results = {
         'nodes' : [],
         'edges' : [],
@@ -130,7 +148,7 @@ def generate_graphs(folder_path):
     for root, dirs, files in os.walk(folder_path):
         for file in files:
             if file.endswith((".jpg", ".jpeg", ".png", ".webp", ".gif")):
-                res = generate_image_graph(os.path.join(root, file))
+                res = generate_image_graph(os.path.join(root, file), yolo_weight)
                 for node in res[0]:
                     if not results['nodes'] or not any(stored_node['id'] == node['id'] for stored_node in results['nodes']):
                         results['nodes'].append(node)
