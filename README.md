@@ -13,8 +13,8 @@ Repo for the latest implementation of our TCC
   - [x] Nº of identical tags could represent edge weight
 - [x] Make every execution local
 - [ ] "Good enough" user interface
-  - [ ] No obvious missing features
-  - [ ] Consistent Design Patterns
+  - [X] No obvious missing features
+  - [X] Consistent Design Patterns
     - [ ] Bootstrap/Tailwind/Material/...
 - [ ] Execution instructions
 
@@ -22,7 +22,7 @@ Repo for the latest implementation of our TCC
 
 - [ ] No reload between requests
 - [x] YoloV8
-- [x] Self-Contained Executable
+- [~] Self-Contained Executable
 
 ## Optional Features
 
@@ -34,7 +34,7 @@ Repo for the latest implementation of our TCC
 - [ ] better comparissons during development
   - [ ] Intel igpu/cpu
   - [ ] AMD igpu/cpu
-  - [ ] Nvidia Cuda
+  - [x] Nvidia Cuda
   - [ ] Colaboratory
 - [ ] Prints of results
   - [ ] Partial

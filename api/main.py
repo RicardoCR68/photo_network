@@ -6,143 +6,85 @@ import json
 
 app = FastAPI()
 
-class FolderPath(BaseModel):
+class GraphSourceChoice(BaseModel):
     folderPath: str
+    yoloWeight: str
+
+class ClassSelect(BaseModel):
+    classId: str
+
+class ImageSelect(BaseModel):
+    imageId: str
+
+YOLO_WEIGHT_OPTIONS = {
+    'x-large': 'yolov8x.pt',
+    'large': 'yolov8l.pt',
+    'medium': 'yolov8m.pt',
+    'small': 'yolov8s.pt',
+    'nano': 'yolov8n.pt',
+}
 
 @app.post("/")
-async def receive_folder_path(folder_path: FolderPath):
-    received_path = folder_path.folderPath
-    folder_results = generate_graphs(received_path)
-    folder_json = json.dumps(folder_results)
+async def receive_folder_path(source_choice: GraphSourceChoice):
+    received_path = source_choice.folderPath
+    yolo_weight = source_choice.yoloWeight
+
+    global folder_results
+    folder_results = generate_graphs(received_path, yolo_weight)
+
     return folder_results
 
 @app.get("/")
 async def root():
-    return {
-        "nodes": [
-            {
-                'id': 1,
-                'value': 2,
-                'label': "Algie"
-            },
-            {
-                'id': 2,
-                'value': 31,
-                'label': "Alston"
-            },
-            {
-                'id': 3,
-                'value': 12,
-                'label': "Barney"
-            },
-            {
-                'id': 4,
-                'value': 16,
-                'label': "Coley"
-            },
-            {
-                'id': 5,
-                'value': 17,
-                'label': "Grant"
-            },
-            {
-                'id': 6,
-                'value': 15,
-                'label': "Langdon"
-            },
-            {
-                'id': 7,
-                'value': 6,
-                'label': "Lee"
-            },
-            {
-                'id': 8,
-                'value': 5,
-                'label': "Merlin"
-            },
-            {
-                'id': 9,
-                'value': 30,
-                'label': "Mick"
-            },
-            {
-                'id': 10,
-                'value': 18,
-                'label': "Tod"
-            },
-        ],
-        'edges': [
-            {
-                'from': 2,
-                'to': 8,
-                'value': 3,
-                'label': "3 emails per week"
-            },
-            {
-                'from': 2,
-                'to': 9,
-                'value': 5,
-                'label': "5 emails per week"
-            },
-            {
-                'from': 2,
-                'to': 10,
-                'value': 1,
-                'label': "1 emails per week"
-            },
-            {
-                'from': 4,
-                'to': 6,
-                'value': 8,
-                'label': "8 emails per week"
-            },
-            {
-                'from': 5,
-                'to': 7,
-                'value': 2,
-                'label': "2 emails per week"
-            },
-            {
-                'from': 4,
-                'to': 5,
-                'value': 1,
-                'label': "1 emails per week"
-            },
-            {
-                'from': 9,
-                'to': 10,
-                'value': 2,
-                'label': "2 emails per week"
-            },
-            {
-                'from': 2,
-                'to': 3,
-                'value': 6,
-                'label': "6 emails per week"
-            },
-            {
-                'from': 3,
-                'to': 9,
-                'value': 4,
-                'label': "4 emails per week"
-            },
-            {
-                'from': 5,
-                'to': 3,
-                'value': 1,
-                'label': "1 emails per week"
-            },
-            {
-                'from': 2,
-                'to': 7,
-                'value': 4,
-                'label': "4 emails per week"
-            },
-        ]
+    return {}
+
+@app.get("/reset/")
+async def reset_graph():
+    return folder_results
+
+@app.post("/nodes/")
+async def get_node(class_name: ClassSelect):
+    id = int(class_name.classId)
+    node_ids = []
+    response = {
+        'nodes' : []
     }
 
-def generate_image_graph(image_file):
-    model = YOLO('yolov8m.pt')
+    for edge in folder_results['edges']:
+        if edge['from'] == id:
+            node_ids.append(edge['to'])
+
+    for node_id in node_ids:
+        for node in folder_results['nodes']:
+            if node['id'] == node_id:
+                response['nodes'].append(node)
+
+    return response
+
+@app.post("/images/")
+async def get_node(image_path: ImageSelect):
+    id = image_path.imageId
+    node_ids = []
+    response = {
+        'nodes' : []
+    }
+
+    for edge in folder_results['edges']:
+        if edge['to'] == id:
+            node_ids.append(edge['from'])
+
+    for node_id in node_ids:
+        for node in folder_results['nodes']:
+            if node['id'] == node_id:
+                response['nodes'].append(node)
+
+    return response
+
+def generate_image_graph(image_file, yolo_weight):
+    if yolo_weight not in YOLO_WEIGHT_OPTIONS.keys():
+        yolo_weight = 'medium'
+
+    model = YOLO(YOLO_WEIGHT_OPTIONS[yolo_weight])
 
     results = model(image_file)
     nodes = [
@@ -157,7 +99,7 @@ def generate_image_graph(image_file):
     ]
 
     edges = []
-    confidence_threshold = 0.6
+    confidence_threshold = 0.5
     for result in results:
         parent_path = os.path.join(os.getcwd(), os.pardir)
         result.save(filename=f'{parent_path}/results/{nodes[0]['label']}_result.png')
@@ -198,7 +140,7 @@ def generate_image_graph(image_file):
                 })
     return [nodes, edges]
 
-def generate_graphs(folder_path):
+def generate_graphs(folder_path, yolo_weight):
     results = {
         'nodes' : [],
         'edges' : [],
@@ -206,7 +148,7 @@ def generate_graphs(folder_path):
     for root, dirs, files in os.walk(folder_path):
         for file in files:
             if file.endswith((".jpg", ".jpeg", ".png", ".webp", ".gif")):
-                res = generate_image_graph(os.path.join(root, file))
+                res = generate_image_graph(os.path.join(root, file), yolo_weight)
                 for node in res[0]:
                     if not results['nodes'] or not any(stored_node['id'] == node['id'] for stored_node in results['nodes']):
                         results['nodes'].append(node)
