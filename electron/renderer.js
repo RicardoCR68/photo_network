@@ -18,15 +18,17 @@ window.addEventListener('DOMContentLoaded', () => {
 
   ipcRenderer.on('selected-folder', (_event, folderPath) => {
     yoloWeight = yoloWeightSelect.value;
-    console.log(yoloWeight);
+    const start = performance.now();
     axios.post('http://localhost:8000/', { folderPath, yoloWeight })
       .then(response => {
-        console.log('Folder path sent to API:');
-        console.log(response.data);
         resetGraphBtn.disabled = false;
         populateGraphView(container, response.data);
         populateClassSelect(container, response.data);
         populateImageSelect(container, response.data);
+        const timeItTook = performance.now() - start;
+        const imageCount = response.data.nodes.filter(node => node.image).length;
+        const classesCount = response.data.nodes.filter(node => !node.image).length;
+        console.log(`| ${yoloWeight} | ${imageCount} | ${timeItTook} | ${timeItTook / imageCount} | ${classesCount} | `);
       })
       .catch(error => {
         console.error('Error sending folder path to API:', error);
@@ -38,7 +40,6 @@ document.getElementById('resetGraphBtn').addEventListener('click', () => {
   const container = document.getElementById('visualization');
   axios.get('http://localhost:8000/reset/')
     .then(response => {
-      console.log(response.data);
       resetGraphBtn.disabled = false;
       populateGraphView(container, response.data);
     })
@@ -76,7 +77,6 @@ const populateClassSelect = (container, class_res_data) => {
   const classOptions = document.getElementById('classOptions');
   classOptions.innerHTML = '';
   const class_nodes = class_res_data.nodes.filter(node => !node.image)
-  console.log(class_nodes)
 
   class_nodes.forEach((node) => {
     const optionDiv = document.createElement('div');
@@ -104,8 +104,6 @@ const populateClassSelect = (container, class_res_data) => {
     const classId = classOptions.querySelector('input[name="className"]:checked').value;
     axios.post('http://localhost:8000/nodes/', { classId })
       .then(response => {
-        console.log('Class name sent to API:');
-        console.log(response.data);
         populateGraphView(container, response.data);
       })
       .catch(error => {
@@ -117,9 +115,7 @@ const populateClassSelect = (container, class_res_data) => {
 const populateImageSelect = (container, img_res_data) => {
   const imageOptions = document.getElementById('imageOptions');
   imageOptions.innerHTML = '';
-  const image_nodes = img_res_data.nodes.filter(node => node.image)
-  console.log(image_nodes)
-
+  const image_nodes = img_res_data.nodes.filter(node => node.image);
   image_nodes.forEach((node) => {
     const optionDiv = document.createElement('div');
     optionDiv.id = 'image-' + node['id'];
@@ -146,8 +142,6 @@ const populateImageSelect = (container, img_res_data) => {
     const imageId = imageOptions.querySelector('input[name="imageName"]:checked').value;
     axios.post('http://localhost:8000/images/', { imageId })
       .then(response => {
-        console.log('Image name sent to API:');
-        console.log(response.data);
         populateGraphView(container, response.data);
       })
       .catch(error => {
